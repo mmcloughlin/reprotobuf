@@ -1,4 +1,4 @@
-## Methodology
+# Analysis
 
 Message classes extend `MessageNano`. We can use androguard to find the
 subclasses of `MessageNano`. Each of these classes has
@@ -22,3 +22,14 @@ subclasses of `MessageNano`. Each of these classes has
 We can also inspect the [code generator for these
 classes](https://github.com/google/protobuf/tree/master/src/google/protobuf/compiler/javanano).
 
+## Example Compilation
+
+We can observe how the compiler works with a basic example that exercises many
+of the features of protobuf. In this directory, `ExampleProtos.java` was
+created from `example.proto` with
+
+  protoc --javanano_out . example.proto
+
+The Google Play JavaNano classes appear to have been generated with an older
+version of `protoc` than was used here. In particular they use the
+`java_nano_generate_has` option which has since been deprecated.

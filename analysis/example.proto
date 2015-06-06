@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+option java_outer_classname = "ExampleProtos";
+
+message Example {
+  required string req = 1;
+  optional int32 opt = 2;
+
+  message Sub {
+    required int64 a = 100;
+    required double b = 101;
+  }
+
+  repeated Sub sub = 10;
+}
