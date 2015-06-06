@@ -11,11 +11,11 @@ import executor
 
 
 # XXX must be library for this
-def convert_upper_camel_case_to_lower_camel_case(s):
+def has_field_name(s):
     """
-    ExpDateRecognizedByOcr -> expDateRecognizedByOcr
+    fieldName -> hasFieldName
     """
-    return s[:1].lower() + s[1:]
+    return 'has' + s[:1].upper() + s[1:]
 
 
 class Reprotobuf(object):
@@ -37,19 +37,25 @@ class Reprotobuf(object):
         """
         Deduce fields by inspecting the fields of the Java class.
         """
+        # fetch all the fields
         fields = {}
         for field in cls.get_fields():
             name = field.get_name()
-            # optional fields have a corresponding has<name> field
-            if name.startswith('has'):
-                fieldname = convert_upper_camel_case_to_lower_camel_case(name[3:])
-                fields.setdefault(fieldname, {})['required'] = False
-                continue
-            properties = fields.setdefault(name, {})
-            properties['name'] = name
-            properties['descriptor'] = field.get_descriptor()
-            if 'required' not in properties:
-                properties['required'] = True
+            fields[name] = {
+                    'name': name,
+                    'descriptor': field.get_descriptor(),
+                    'required': True,
+                    }
+        # deduce optional ones from has* fields
+        optional = []
+        for name in fields:
+            if has_field_name(name) in fields:
+                optional.append(name)
+        # mark the optional fields, and remove
+        print '>>OPTIONAL', optional
+        for name in optional:
+            del fields[has_field_name(name)]
+            fields[name]['required'] = False
         return fields
 
     def get_tags_from_class(self, cls):
