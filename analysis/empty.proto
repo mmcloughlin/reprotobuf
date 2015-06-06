@@ -1,0 +1,6 @@
+syntax = "proto2";
+
+option java_outer_classname = "EmptyProtos";
+
+message Empty {
+}

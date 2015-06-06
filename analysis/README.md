@@ -20,6 +20,9 @@ subclasses of `MessageNano`. Each of these classes has
     - many calls to `write<type>(tag, ...)`
     - could potentially get the tags from here
 
+Note that empty messages are valid, and the generated code will not have a
+`writeTo()` method.
+
 We can also inspect the [code generator for these
 classes](https://github.com/google/protobuf/tree/master/src/google/protobuf/compiler/javanano).
 

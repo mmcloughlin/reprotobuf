@@ -60,7 +60,8 @@ class Reprotobuf(object):
 
     def get_tags_from_class(self, cls):
         methods = [m for m in cls.get_methods() if m.get_name() == 'writeTo']
-        assert len(methods) == 1
+        if len(methods) == 0:
+            return
 
         method = self.vma.get_method(methods[0])
         basic_blocks = method.basic_blocks.gets()
