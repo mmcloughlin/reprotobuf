@@ -55,6 +55,8 @@ class Reprotobuf(object):
         for name in optional:
             del fields[has_field_name(name)]
             fields[name]['required'] = False
+        # remove _emptyArray if it exists
+        fields.pop('_emptyArray', None)
         return fields
 
     def get_tags_from_class(self, cls):

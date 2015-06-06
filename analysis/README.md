@@ -8,6 +8,7 @@ subclasses of `MessageNano`. Each of these classes has
     - Java [field descriptors](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html) can be parsed into data types
     - Optional fields have corresponding `has<fieldname>` fields (although
       field names can start with `has`)
+    - `_emptyArray` is a special field added by the code generator
 * `clear()` initializes the class
 * `computeSerializedSize()` returns the size of the encoded form
     - contains calls to sizes of contained types
