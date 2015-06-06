@@ -52,7 +52,6 @@ class Reprotobuf(object):
             if has_field_name(name) in fields:
                 optional.append(name)
         # mark the optional fields, and remove
-        print '>>OPTIONAL', optional
         for name in optional:
             del fields[has_field_name(name)]
             fields[name]['required'] = False
@@ -61,7 +60,7 @@ class Reprotobuf(object):
     def get_tags_from_class(self, cls):
         methods = [m for m in cls.get_methods() if m.get_name() == 'writeTo']
         if len(methods) == 0:
-            return
+            return {}
 
         method = self.vma.get_method(methods[0])
         basic_blocks = method.basic_blocks.gets()
@@ -72,6 +71,8 @@ class Reprotobuf(object):
             for inst in bb.get_instructions():
                 e.run(inst)
 
+        return e.get_tags()
+
 # main ---------------------------------------------------------
 
 rpb = Reprotobuf.from_classes_dex(sys.argv[1])
@@ -81,8 +82,30 @@ for cls in proto_classes:
     print '>>>>>>>>', cls.get_name()
     # deduce fields
     fields = rpb.get_fields_from_class(cls)
-    for name, properties in fields.items():
-        print '  ', name, properties['required'], properties['descriptor']
     # deduce tags
-    rpb.get_tags_from_class(cls)
+    tag_map = rpb.get_tags_from_class(cls)
+    for name, tag in tag_map.items():
+        assert name in fields
+        fields[name]['tag'] = tag
+    # report
+    tags = set()
+    for name, properties in fields.items():
+        for k, v in properties.items():
+            print '%s=%s' % (k, v),
+        if 'tag' in properties:
+            tags.add(properties['tag'])
+        else:
+            print 'ERROR:TAG_MISSING',
+        print
+
+    if len(tags) < len(fields):
+        print 'ERROR:TAGS_MISSING'
+    if len(tags) == 0:
+        print 'ERROR:ZERO_TAGS'
+        continue
+    if min(tags) != 1:
+        print 'ERROR:MINTAG_NOT_ONE'
+    if max(tags) != len(tags):
+        print 'ERROR:MAXTAG_INCORRECT'
+    print
 

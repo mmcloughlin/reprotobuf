@@ -23,35 +23,33 @@ class WriteToExecutor(SmaliExecutor):
     def __init__(self):
         super(WriteToExecutor, self).__init__()
         self.reset_state()
+        self.tags = {}
 
     def reset_state(self):
         self.last_const = None
         self.last_field_name = None
 
     def const(self, inst):
-        #print '>>', inst.get_name()
         literals = inst.get_literals()
         assert len(literals) == 1
         self.last_const = literals[0]
 
     def iget(self, inst):
-        #print '>>', inst.get_name()
-        #print '>>>', inst.get_operands()
         class_name, field_type, field_name = inst.cm.get_field(inst.CCCC)
         self.last_field_name = field_name
 
     def invoke_virtual(self, inst):
-        #print '>>', inst.get_name()
-        #print '>>>', inst.get_operands()
         method = inst.cm.get_method_ref(inst.BBBB)
         method_name = method.get_name()
         if not method_name.startswith('write'):
             return
-        print '>>>', self.last_const, self.last_field_name
         assert self.last_const
         assert self.last_field_name
+        self.tags[self.last_field_name] = self.last_const
         self.reset_state()
 
+    def get_tags(self):
+        return self.tags
 
 
 # if (this.backgroundAction != null) {
