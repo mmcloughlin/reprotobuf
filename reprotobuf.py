@@ -105,9 +105,14 @@ for cls in proto_classes:
     if len(tags) == 0:
         print 'ERROR:ZERO_TAGS'
         continue
-    if min(tags) != 1:
-        print 'ERROR:MINTAG_NOT_ONE'
-    if max(tags) != len(tags):
-        print 'ERROR:MAXTAG_INCORRECT'
+    if min(tags) != 1 or max(tags) != len(tags):
+        print 'ERROR:TAGRANGE'
+        upper = max(max(tags), len(tags))
+        for t in range(1, upper+1):
+            print '%2d' % (t),
+        print
+        for t in range(1, upper+1):
+            print '..' if t in tags else 'xx',
+        print
     print
 
