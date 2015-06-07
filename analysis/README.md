@@ -269,6 +269,7 @@ JavaType GetJavaType(const FieldDescriptor* field) {
 So for primitive types we have
 
 | Descriptor | Java | Protobuf |
+|---|---------|--------|
 | Z | boolean | bool   |
 | B | byte    | int32  |
 | S | short   | int32  |
