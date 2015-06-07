@@ -30,8 +30,10 @@ class Reprotobuf(object):
         return cls(classes_dex)
 
     def get_proto_classes(self):
-        return filter(lambda c: "MessageNano;" in c.get_superclassname(),
-                self.dvm.get_classes())
+        def is_proto(cls):
+            return ('MessageNano;' in cls.get_superclassname() and
+                    'abstract' not in cls.get_access_flags_string())
+        return filter(is_proto, self.dvm.get_classes())
 
     def get_fields_from_class(self, cls):
         """

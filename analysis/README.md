@@ -1,7 +1,9 @@
 # Analysis
 
 Message classes extend `MessageNano`. We can use androguard to find the
-subclasses of `MessageNano`. Each of these classes has
+subclasses of `MessageNano`. We also need to exclude a few `abstract`
+subclasses like `ParcelableMessageNano`, which do not correspond to protobuf
+message types. Each of the actual message classes has
 
 * Fields
     - Fields of the class should be fields of the protobuf
