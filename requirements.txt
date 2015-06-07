@@ -1,2 +1,1 @@
 -e git+https://github.com/androguard/androguard@3e6517168ebc82e6f9ca82922b531639d67d7253#egg=androguard-master
-wsgiref==0.1.2
