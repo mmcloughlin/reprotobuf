@@ -1,5 +1,7 @@
 import re
 
+import androguard.core.bytecodes.dvm as dvm
+
 class SmaliExecutor(object):
     def __init__(self):
         inst_sep = ['-', '/']
@@ -26,26 +28,38 @@ class WriteToExecutor(SmaliExecutor):
         self.tags = {}
 
     def reset_state(self):
-        self.last_const = None
+        self.registers = {}
         self.last_field_name = None
 
     def const(self, inst):
-        literals = inst.get_literals()
-        assert len(literals) == 1
-        self.last_const = literals[0]
+        print inst.get_name(), 'OPERANDS:', inst.get_operands()
+        operands = inst.get_operands()
+        assert len(operands) == 2
+        assert operands[0][0] == dvm.OPERAND_REGISTER
+        reg = operands[0][1]
+        assert operands[1][0] == dvm.OPERAND_LITERAL
+        val = operands[1][1]
+        self.registers[reg] = val
 
     def iget(self, inst):
+        print inst.get_name(), 'OPERANDS:', inst.get_operands()
         class_name, field_type, field_name = inst.cm.get_field(inst.CCCC)
         self.last_field_name = field_name
 
     def invoke_virtual(self, inst):
+        print inst.get_name(), 'OPERANDS:', inst.get_operands()
         method = inst.cm.get_method_ref(inst.BBBB)
         method_name = method.get_name()
         if not method_name.startswith('write'):
             return
-        assert self.last_const
+
+        operands = inst.get_operands()
+        assert operands[1][0] == dvm.OPERAND_REGISTER
+        reg = operands[1][1]
+
+        assert reg in self.registers
         assert self.last_field_name
-        self.tags[self.last_field_name] = self.last_const
+        self.tags[self.last_field_name] = self.registers[reg]
         self.reset_state()
 
     def get_tags(self):
