@@ -24,10 +24,7 @@ class SmaliExecutor(object):
 class WriteToExecutor(SmaliExecutor):
     def __init__(self):
         super(WriteToExecutor, self).__init__()
-        self.reset_state()
         self.tags = {}
-
-    def reset_state(self):
         self.registers = {}
         self.last_field_name = None
 
@@ -60,7 +57,6 @@ class WriteToExecutor(SmaliExecutor):
         assert reg in self.registers
         assert self.last_field_name
         self.tags[self.last_field_name] = self.registers[reg]
-        self.reset_state()
 
     def get_tags(self):
         return self.tags

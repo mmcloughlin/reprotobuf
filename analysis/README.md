@@ -143,3 +143,63 @@ iget-wide v2, p0, Lcom/google/android/finsky/protos/AndroidAppDelivery$AndroidAp
 
 invoke-virtual {p1, v8, v2, v3}, Lcom/google/protobuf/nano/CodedOutputByteBufferNano;->writeInt64(IJ)V
 ```
+
+The class `com.google.android.finsky.protos.DocumentV2$WideCardContainer` also
+presents another edge case, where the `const` commands actually appear
+out-of-order. This is another case where we need to track which register the
+constants live in.
+
+```smali
+.method public writeTo(Lcom/google/protobuf/nano/CodedOutputByteBufferNano;)V
+    .locals 3
+    .parameter "output"
+    .annotation system Ldalvik/annotation/Throws;
+        value = {
+            Ljava/io/IOException;
+        }
+    .end annotation
+
+    .prologue
+    const/4 v2, 0x2
+
+    .line 6760
+    iget-boolean v0, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->hasRowCount:Z
+
+    if-nez v0, :cond_0
+
+    iget v0, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->rowCount:I
+
+    if-eq v0, v2, :cond_1
+
+    .line 6761
+    :cond_0
+    const/4 v0, 0x1
+
+    iget v1, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->rowCount:I
+
+    invoke-virtual {p1, v0, v1}, Lcom/google/protobuf/nano/CodedOutputByteBufferNano;->writeInt32(II)V
+
+    .line 6763
+    :cond_1
+    iget-boolean v0, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->hasShowOrdinals:Z
+
+    if-nez v0, :cond_2
+
+    iget-boolean v0, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->showOrdinals:Z
+
+    if-eqz v0, :cond_3
+
+    .line 6764
+    :cond_2
+    iget-boolean v0, p0, Lcom/google/android/finsky/protos/DocumentV2$WideCardContainer;->showOrdinals:Z
+
+    invoke-virtual {p1, v2, v0}, Lcom/google/protobuf/nano/CodedOutputByteBufferNano;->writeBool(IZ)V
+
+    .line 6766
+    :cond_3
+    invoke-super {p0, p1}, Lcom/google/protobuf/nano/MessageNano;->writeTo(Lcom/google/protobuf/nano/CodedOutputByteBufferNano;)V
+
+    .line 6767
+    return-void
+.end method
+```
