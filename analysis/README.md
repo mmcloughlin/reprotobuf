@@ -287,3 +287,49 @@ protobuf fields, we should generally only see up to one `[` character at the
 start, indicating this is a `repeated` field. However there is one exception
 because of the `bytes` protobuf type. The java descriptor for `bytes` is `[B`,
 and `repeated bytes` is therefore `[[B`.
+
+
+## Message Class Names
+
+Some are at the top level, for example the class name
+`Lcom/google/android/finsky/protos/ConsumePurchaseResponse;` appears as the
+following.
+
+```java
+public final class ConsumePurchaseResponse
+extends MessageNano {
+    public boolean hasStatus;
+    public LibraryUpdateProto.LibraryUpdate libraryUpdate;
+    public int status;
+
+    public ConsumePurchaseResponse() {
+        this.clear();
+    }
+
+    ...
+}
+```
+
+Then there are also cases where `java_outer_classname` has been used, and a
+class name like
+`Lcom/google/android/finsky/protos/CommonDevice$BillingAddressSpec;` corresponds
+to the following.
+
+```java
+public interface CommonDevice {
+
+    public static final class BillingAddressSpec
+    extends MessageNano {
+        public int billingAddressType;
+        public boolean hasBillingAddressType;
+        public int[] requiredField;
+
+        public BillingAddressSpec() {
+            this.clear();
+        }
+
+        ...
+    }
+    ...
+}
+```
