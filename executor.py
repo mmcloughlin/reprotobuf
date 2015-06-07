@@ -29,7 +29,6 @@ class WriteToExecutor(SmaliExecutor):
         self.last_field_name = None
 
     def const(self, inst):
-        print inst.get_name(), 'OPERANDS:', inst.get_operands()
         operands = inst.get_operands()
         assert len(operands) == 2
         assert operands[0][0] == dvm.OPERAND_REGISTER
@@ -39,12 +38,10 @@ class WriteToExecutor(SmaliExecutor):
         self.registers[reg] = val
 
     def iget(self, inst):
-        print inst.get_name(), 'OPERANDS:', inst.get_operands()
         class_name, field_type, field_name = inst.cm.get_field(inst.CCCC)
         self.last_field_name = field_name
 
     def invoke_virtual(self, inst):
-        print inst.get_name(), 'OPERANDS:', inst.get_operands()
         method = inst.cm.get_method_ref(inst.BBBB)
         method_name = method.get_name()
         if not method_name.startswith('write'):
@@ -60,15 +57,3 @@ class WriteToExecutor(SmaliExecutor):
 
     def get_tags(self):
         return self.tags
-
-
-# if (this.backgroundAction != null) {
-#     codedOutputByteBufferNano.writeMessage(4, this.backgroundAction);
-# }
-
-
-#    const/4 v0, 0x4
-#
-#    iget-object v1, p0, Lcom/google/android/finsky/analytics/PlayStore$PlayStoreLogEvent;->backgroundAction:Lcom/google/android/finsky/analytics/PlayStore$PlayStoreBackgroundActionEvent;
-#
-#    invoke-virtual {p1, v0, v1}, Lcom/google/protobuf/nano/CodedOutputByteBufferNano;->writeMessage(ILcom/google/protobuf/nano/MessageNano;)V
