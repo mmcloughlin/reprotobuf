@@ -8,6 +8,7 @@ import androguard.core.bytecodes.dvm as dvm
 from androguard.core.analysis.analysis import *
 
 import executor
+import descriptors
 
 
 # XXX must be library for this
@@ -51,7 +52,7 @@ class MessageNanoAnalyzer(object):
             fields[name] = {
                     'name': name,
                     'descriptor': field.get_descriptor(),
-                    'required': True,
+                    'rule': 'required',
                     }
         # deduce optional ones from has* fields
         optional = []
@@ -61,9 +62,14 @@ class MessageNanoAnalyzer(object):
         # mark the optional fields, and remove
         for name in optional:
             del fields[has_field_name(name)]
-            fields[name]['required'] = False
+            fields[name]['rule'] = 'optional'
         # remove _emptyArray if it exists
         fields.pop('_emptyArray', None)
+        # deduce protobuf types from descriptors
+        for properties in fields.values():
+            descriptor = properties['descriptor']
+            protobuf_type = descriptors.to_protobuf_type(descriptor)
+            properties.update(protobuf_type)
         return fields
 
     def get_tags_from_class(self, cls):
@@ -106,5 +112,5 @@ for cls in proto_classes:
     print '>', cls.get_name()
     fields = analyzer.analyze(cls)
     for name, properties in fields.items():
-        print '  %(name)40s %(tag)5d %(required)6s %(descriptor)s' % properties
+        print '  %(name)40s %(tag)5d %(rule)6s %(type)20s %(descriptor)s' % properties
     print

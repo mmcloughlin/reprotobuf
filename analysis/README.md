@@ -205,3 +205,84 @@ constants live in.
     return-void
 .end method
 ```
+
+## Java Type Descriptors
+
+We need to map from the [field descriptor
+syntax](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.2)
+to protobuf types. For the primitive types, we will need to determine a
+mapping to [protobuf scalar
+types](https://developers.google.com/protocol-buffers/docs/proto#scalar).
+
+The mapping is specified in the [javanano
+code](https://github.com/google/protobuf/blob/ed3c8a11f98995c6bf210566ea10659cb3f3abff/src/google/protobuf/compiler/java/java_helpers.cc#L263-L307)
+as follows
+
+```cpp
+JavaType GetJavaType(const FieldDescriptor* field) {
+  switch (GetType(field)) {
+    case FieldDescriptor::TYPE_INT32:
+    case FieldDescriptor::TYPE_UINT32:
+    case FieldDescriptor::TYPE_SINT32:
+    case FieldDescriptor::TYPE_FIXED32:
+    case FieldDescriptor::TYPE_SFIXED32:
+      return JAVATYPE_INT;
+
+    case FieldDescriptor::TYPE_INT64:
+    case FieldDescriptor::TYPE_UINT64:
+    case FieldDescriptor::TYPE_SINT64:
+    case FieldDescriptor::TYPE_FIXED64:
+    case FieldDescriptor::TYPE_SFIXED64:
+      return JAVATYPE_LONG;
+
+    case FieldDescriptor::TYPE_FLOAT:
+      return JAVATYPE_FLOAT;
+
+    case FieldDescriptor::TYPE_DOUBLE:
+      return JAVATYPE_DOUBLE;
+
+    case FieldDescriptor::TYPE_BOOL:
+      return JAVATYPE_BOOLEAN;
+
+    case FieldDescriptor::TYPE_STRING:
+      return JAVATYPE_STRING;
+
+    case FieldDescriptor::TYPE_BYTES:
+      return JAVATYPE_BYTES;
+
+    case FieldDescriptor::TYPE_ENUM:
+      return JAVATYPE_ENUM;
+
+    case FieldDescriptor::TYPE_GROUP:
+    case FieldDescriptor::TYPE_MESSAGE:
+      return JAVATYPE_MESSAGE;
+
+    // No default because we want the compiler to complain if any new
+    // types are added.
+  }
+
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return JAVATYPE_INT;
+}
+```
+
+So for primitive types we have
+
+| Descriptor | Java | Protobuf |
+| Z | boolean | bool   |
+| B | byte    | int32  |
+| S | short   | int32  |
+| C | char    | int32  |
+| I | int     | int32  |
+| J | long    | int64  |
+| F | float   | float  |
+| D | double  | double |
+
+Then we have to deal with complex types: object and array types.
+
+Array types are indicated by an initial `[`, followed by the descriptor of the
+type contained in the array (which can be another array). In the case of
+protobuf fields, we should generally only see up to one `[` character at the
+start, indicating this is a `repeated` field. However there is one exception
+because of the `bytes` protobuf type. The java descriptor for `bytes` is `[B`,
+and `repeated bytes` is therefore `[[B`.
