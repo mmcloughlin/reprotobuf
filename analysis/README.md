@@ -333,3 +333,23 @@ public interface CommonDevice {
     ...
 }
 ```
+
+How do we handle outer class names? One idea is just to ignore them and
+promote the messages to the top level. However, unsurprisingly there will be
+namespace issues if we choose to do this. For example, within the package
+`com.google.android.finsky.protos` we have two messages called `Money` under
+different outer classes.
+
+```
+Lcom/google/android/finsky/protos/Buy$Money;
+Lcom/google/android/finsky/protos/CommonDevice$Money;
+```
+
+We also see repeated names where the package is different.
+
+```
+Lcom/google/android/finsky/protos/CreateInstrument$UsernamePasswordForm;
+Lcom/google/commerce/payments/orchestration/proto/ui/common/components/instrument/types/UsernamePassword$UsernamePasswordForm;
+```
+
+We also see this with message names called `LogResponse` and `LogRequest`.
