@@ -1,4 +1,5 @@
 import sys
+from pprint import pprint
 
 # read apk
 #import androguard.core.bytecodes.apk as apk
@@ -23,6 +24,8 @@ class Reprotobuf(object):
     def __init__(self, classes_dex):
         self.dvm = dvm.DalvikVMFormat(classes_dex)
         self.vma = uVMAnalysis(self.dvm)
+        self.tree = {}
+        self.files = {}
 
     @classmethod
     def from_classes_dex(cls, filename):
@@ -35,6 +38,48 @@ class Reprotobuf(object):
             return ('MessageNano;' in cls.get_superclassname() and
                     'abstract' not in cls.get_access_flags_string())
         return filter(is_proto, self.dvm.get_classes())
+
+    def add_class(self, classname, fields):
+        # build tree
+        parts = classname.split('$')
+        node = self.tree
+        for part in parts:
+            subnodes = node.setdefault('sub', {})
+            node = subnodes.setdefault(part, {})
+        node['class'] = classname
+        #node['fields'] = fields
+
+    def process_classes(self):
+        class_analyzer = MessageNanoAnalyzer(self)
+        proto_classes = self.get_proto_classes()
+        for cls in proto_classes:
+            name = descriptors.extract_classname(cls.get_name())
+            fields = class_analyzer.analyze(cls)
+            self.add_class(name, fields)
+
+    def structure_packages(self):
+        for name in self.tree['sub']:
+            # extract package and outer name
+            parts = name.split('/')
+            filename_part = parts.pop()
+            package = '.'.join(parts)
+            filename = filename_part + '.proto'
+            file_properties = {
+                    'name': filename,
+                    'package': package,
+                    'options': {},
+                    }
+            # if there's a class at this level
+            if 'class' in self.tree['sub'][name]:
+                file_properties['options']['java_multiple_files'] = True
+                file_properties['messages'] = {
+                        filename_part: self.tree['sub'][name]
+                        }
+            else:
+                file_properties['messages'] = self.tree['sub'][name]
+            # add this file to our list
+            assert filename not in self.files
+            self.files[filename] = file_properties
 
 
 class MessageNanoAnalyzer(object):
@@ -105,12 +150,6 @@ class MessageNanoAnalyzer(object):
 # main ---------------------------------------------------------
 
 workspace = Reprotobuf.from_classes_dex(sys.argv[1])
-analyzer = MessageNanoAnalyzer(workspace)
-proto_classes = workspace.get_proto_classes()
-
-for cls in proto_classes:
-    print '>', cls.get_name()
-    fields = analyzer.analyze(cls)
-    for name, properties in fields.items():
-        print '  %(name)40s %(tag)5d %(rule)6s %(type)20s %(descriptor)s' % properties
-    print
+workspace.process_classes()
+workspace.structure_packages()
+pprint(workspace.files)
