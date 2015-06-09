@@ -289,7 +289,7 @@ because of the `bytes` protobuf type. The java descriptor for `bytes` is `[B`,
 and `repeated bytes` is therefore `[[B`.
 
 
-## Message Class Names
+## Message Class Structure
 
 Some are at the top level, for example the class name
 `Lcom/google/android/finsky/protos/ConsumePurchaseResponse;` appears as the
@@ -353,3 +353,15 @@ Lcom/google/commerce/payments/orchestration/proto/ui/common/components/instrumen
 ```
 
 We also see this with message names called `LogResponse` and `LogRequest`.
+
+Therefore it seems we have three components in a class name:
+
+1. *Package:* from the `java_package` option.
+
+2. *Outer Class:* defaults to the name of the protobuf file, or overridden
+   with the `java_outer_classname` option. Outer class can be skipped with
+   `java_multiple_files` option, although this seems to now be discouraged.
+   Technically the outer class is an interface.
+
+3. *Message Name:* taken from the actual message name. Sub-messages are
+   represented as child classes in Java.
