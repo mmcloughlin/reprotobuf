@@ -47,7 +47,7 @@ class Reprotobuf(object):
             subnodes = node.setdefault('sub', {})
             node = subnodes.setdefault(part, {})
         node['class'] = classname
-        #node['fields'] = fields
+        node['fields'] = fields
 
     def process_classes(self):
         class_analyzer = MessageNanoAnalyzer(self)
@@ -68,12 +68,15 @@ class Reprotobuf(object):
                     'name': filename,
                     'package': package,
                     'options': {},
+                    'imports': set(),
                     }
             # if there's a class at this level
             if 'class' in self.tree['sub'][name]:
-                file_properties['options']['java_multiple_files'] = True
+                file_properties['options']['java_multiple_files'] = 'true';
                 file_properties['messages'] = {
-                        filename_part: self.tree['sub'][name]
+                        'sub': {
+                            filename_part: self.tree['sub'][name]
+                            }
                         }
             else:
                 file_properties['messages'] = self.tree['sub'][name]
@@ -92,6 +95,7 @@ class Reprotobuf(object):
         for properties in self.files.values():
             filerefs = self.determine_references_for_message_tree(
                     properties['messages'], properties['package'])
+            assert len(filerefs) > 0
             for r in filerefs.values():
                 r['import'] = properties['name']
             refs.update(filerefs)
@@ -109,6 +113,46 @@ class Reprotobuf(object):
             refs.update(subrefs)
         return refs
 
+    def generate_code_for_message_tree(self, node, imports, indent_level=0):
+        code = ''
+        indent = ' ' * (2*indent_level)
+        if 'sub' in node:
+            for name in node['sub']:
+                code += indent + 'message %s {\n' % name
+                code += self.generate_code_for_message_tree(node['sub'][name],
+                        imports, indent_level + 1)
+                code += indent + '}\n\n'
+        if 'fields' in node:
+            for field in node['fields'].values():
+                if 'ref' in field:
+                    classname = field['ref']
+                    imports.add(self.refs[classname]['import'])
+                    field['type'] = self.refs[classname]['ref']
+                code += indent
+                code += '%(rule)s %(type)s %(name)s = %(tag)d;\n' % field
+        return code
+
+    def generate_code(self):
+        self.refs = self.determine_references()
+        for properties in self.files.values():
+            properties['code'] = self.generate_code_for_message_tree(
+                    properties['messages'], properties['imports'])
+
+    def output(self):
+        for properties in self.files.values():
+            with open('./output/' + properties['name'], 'w') as f:
+                f.write('syntax = "proto2";\n\n')
+                f.write('package %s;\n' % properties['package'])
+                f.write('\n')
+                for k, v in properties['options'].items():
+                    f.write('option %s = %s;\n' % (k, v))
+                f.write('\n')
+                for imprt in properties['imports']:
+                    if imprt == properties['name']:
+                        continue
+                    f.write('import "%s";\n' % (imprt))
+                f.write('\n')
+                f.write(properties['code'])
 
 
 class MessageNanoAnalyzer(object):
@@ -181,4 +225,5 @@ class MessageNanoAnalyzer(object):
 workspace = Reprotobuf.from_classes_dex(sys.argv[1])
 workspace.process_classes()
 workspace.structure_packages()
-pprint(workspace.files)
+workspace.generate_code()
+workspace.output()
