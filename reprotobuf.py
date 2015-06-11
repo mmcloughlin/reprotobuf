@@ -7,6 +7,7 @@ from pprint import pprint
 
 import androguard.core.bytecodes.dvm as dvm
 from androguard.core.analysis.analysis import *
+import inflection
 
 import executor
 import descriptors
@@ -63,7 +64,7 @@ class Reprotobuf(object):
             parts = name.split('/')
             filename_part = parts.pop()
             package = '.'.join(parts)
-            filename = filename_part + '.proto'
+            filename = inflection.underscore(filename_part) + '.proto'
             file_properties = {
                     'name': filename,
                     'package': package,
