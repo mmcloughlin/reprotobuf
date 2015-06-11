@@ -81,6 +81,35 @@ class Reprotobuf(object):
             assert filename not in self.files
             self.files[filename] = file_properties
 
+    def determine_references(self):
+        """
+        Given a division of messages into files and packages, we need to
+        know how each java class descriptor should be referenced in the proto
+        files. In particular, which file to import and how to reference it.
+        """
+
+        refs = {}
+        for properties in self.files.values():
+            filerefs = self.determine_references_for_message_tree(
+                    properties['messages'], properties['package'])
+            for r in filerefs.values():
+                r['import'] = properties['name']
+            refs.update(filerefs)
+        return refs
+
+    def determine_references_for_message_tree(self, node, parent=''):
+        refs = {}
+        if 'class' in node:
+            refs[node['class']] = {'ref': parent}
+        if 'sub' not in node:
+            return refs
+        for subnode in node['sub']:
+            subrefs = self.determine_references_for_message_tree(
+                    node['sub'][subnode], parent + '.' + subnode)
+            refs.update(subrefs)
+        return refs
+
+
 
 class MessageNanoAnalyzer(object):
     def __init__(self, workspace):
