@@ -70,7 +70,7 @@ class Reprotobuf(object):
                     'package': filename_part,
                     'options': {
                         'java_package': '"%s"' % package,
-                        'java_outer_class': '"%s"' % filename_part,
+                        'java_outer_classname': '"%s"' % filename_part,
                         },
                     'imports': set(),
                     }
@@ -138,7 +138,6 @@ class Reprotobuf(object):
                         imports, scope + '.' + name, indent_level + 1)
                 code += indent + '}\n\n'
         if 'fields' in node:
-            code += '%s// scope = %s\n' % (indent, scope)
             for field in node['fields'].values():
                 if 'ref' in field:
                     classname = field['ref']
@@ -147,9 +146,7 @@ class Reprotobuf(object):
                 code += indent
                 code += '%(rule)s ' % field
                 code += self.reference_within_scope(field['type'], scope)
-                code += ' %(name)s = %(tag)d;' % field
-                code += ' // type="%s" scope="%s"' % (field['type'], scope)
-                code += '\n'
+                code += ' %(name)s = %(tag)d;\n' % field
         return code
 
     def generate_code(self):
