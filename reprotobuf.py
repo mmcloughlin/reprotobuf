@@ -67,8 +67,10 @@ class Reprotobuf(object):
             filename = inflection.underscore(filename_part) + '.proto'
             file_properties = {
                     'name': filename,
-                    'package': package,
-                    'options': {},
+                    'package': filename_part,
+                    'options': {
+                        'java_package': '"%s"' % package,
+                        },
                     'imports': set(),
                     }
             # if there's a class at this level
@@ -114,30 +116,47 @@ class Reprotobuf(object):
             refs.update(subrefs)
         return refs
 
-    def generate_code_for_message_tree(self, node, imports, indent_level=0):
+    def reference_within_scope(self, ref, scope):
+        if ref == scope:
+            return ref
+        ref_parts = ref.split('.')
+        scope_parts = scope.split('.')
+        i = 0
+        lim = min(len(ref_parts), len(scope_parts))
+        while i < lim and ref_parts[i] == scope_parts[i]:
+            i += 1
+        return '.'.join(ref_parts[i:])
+
+    def generate_code_for_message_tree(self, node, imports, scope='', indent_level=0):
         code = ''
         indent = ' ' * (2*indent_level)
         if 'sub' in node:
             for name in node['sub']:
                 code += indent + 'message %s {\n' % name
                 code += self.generate_code_for_message_tree(node['sub'][name],
-                        imports, indent_level + 1)
+                        imports, scope + '.' + name, indent_level + 1)
                 code += indent + '}\n\n'
         if 'fields' in node:
+            code += '%s// scope = %s\n' % (indent, scope)
             for field in node['fields'].values():
                 if 'ref' in field:
                     classname = field['ref']
                     imports.add(self.refs[classname]['import'])
                     field['type'] = self.refs[classname]['ref']
                 code += indent
-                code += '%(rule)s %(type)s %(name)s = %(tag)d;\n' % field
+                code += '%(rule)s ' % field
+                code += self.reference_within_scope(field['type'], scope)
+                code += ' %(name)s = %(tag)d;' % field
+                code += ' // type="%s" scope="%s"' % (field['type'], scope)
+                code += '\n'
         return code
 
     def generate_code(self):
         self.refs = self.determine_references()
         for properties in self.files.values():
             properties['code'] = self.generate_code_for_message_tree(
-                    properties['messages'], properties['imports'])
+                    properties['messages'], properties['imports'],
+                    properties['package'])
 
     def output(self):
         for properties in self.files.values():
