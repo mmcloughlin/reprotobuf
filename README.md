@@ -32,3 +32,5 @@ implemented in
 [androproto.py](https://github.com/egirault/googleplay-api/blob/master/androguard/androproto.py),
 and adapted for the nano case by
 [androguard-protobuf-nano-extractor](https://github.com/bitpew/androguard-protobuf-nano-extractor).
+This project also makes heavy use of the [androguard
+library](https://github.com/androguard/androguard).
