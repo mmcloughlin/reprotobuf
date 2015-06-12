@@ -70,6 +70,7 @@ class Reprotobuf(object):
                     'package': filename_part,
                     'options': {
                         'java_package': '"%s"' % package,
+                        'java_outer_class': '"%s"' % filename_part,
                         },
                     'imports': set(),
                     }
