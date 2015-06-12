@@ -138,7 +138,8 @@ class Reprotobuf(object):
                         imports, scope + '.' + name, indent_level + 1)
                 code += indent + '}\n\n'
         if 'fields' in node:
-            for field in node['fields'].values():
+            fields = sorted(node['fields'].values(), key=lambda f: f['tag'])
+            for field in fields:
                 if 'ref' in field:
                     classname = field['ref']
                     imports.add(self.refs[classname]['import'])
