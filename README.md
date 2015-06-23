@@ -2,9 +2,10 @@
 
 Reverse engineer protobuf files from generated [javanano](https://github.com/google/protobuf/tree/master/javanano) code for android.
 
-> This is development code which has only been tested against the Google Play
-APK. As such it is still rough around the edges and may not work for other
-cases.
+> This is scrappy development code which has only been tested against the
+Google Play APK (for the [finsky
+project](https://github.com/mmcloughlin/finsky)). As such it is still rough
+around the edges and may not work for other cases.
 
 ## Installation
 
